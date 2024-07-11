@@ -18,8 +18,18 @@ counts = data_dic['Channels data']
 def calibration_curve(channels):
     return 0.3865 * channels + 0.5
 
-def detector_efficiency(energy):
-    return np.exp(8.5 * np.exp(-0.00061 * energy) - 13.6)
+def detector_efficiency(energy, counts):
+
+    efficiency_energy = np.zeros(len(energy))
+    efficiency_counts = np.zeros(len(energy))
+
+    for i in range(len(energy)):
+        efficiency_energy[i] = np.exp(8.5 * np.exp(-0.00061 * energy[i]) - 13.6)
+
+    for i in range(len(energy)):
+        efficiency_counts[i] = float(counts[i]) / efficiency_energy[i]
+
+    return efficiency_counts
 
 def fit_gauss(channels, counts):
 
@@ -71,26 +81,13 @@ def compute_rate(event, efficiency, time):
     print("Event Rate: {}Bq".format(event / (efficiency * time))) 
 
 energy = calibration_curve(channel)
-K_40_energy, K_40_counts = [], []
+count_eff = detector_efficiency(energy, counts)
+count_eff /= 86400
 
-for i in range(len(energy)):
-    if energy[i] > 1456 and energy[i] < 1464:
-        K_40_energy.append(energy[i])
-        K_40_counts.append(counts[i])
-        
-amplitude, mean, std = fit_gauss(K_40_energy, K_40_counts)
-
-upper_limit = 1456
-lower_limit = 1464
-result, error = intergrate_gaussian(lower_limit, upper_limit, mean, std, amplitude)
-
-compute_rate(result, detector_efficiency(1460), 86400)
-
-
-plt.plot(energy, counts)
+plt.plot(energy, count_eff)
 plt.xlabel("Energy (keV)",fontsize=12)
-plt.ylabel("Counts (/day)",fontsize=12)
+plt.ylabel("Rate (counts/s)",fontsize=12)
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-plt.yscale("log")
+#plt.yscale("log")
 plt.show()
