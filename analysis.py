@@ -81,10 +81,11 @@ def compute_rate(event, efficiency, time):
     print("Event Rate: {}Bq".format(event / (efficiency * time))) 
 
 energy = calibration_curve(channel)
+
 count_eff = detector_efficiency(energy, counts)
 count_eff /= 86400
 
-plt.plot(energy, count_eff)
+plt.scatter(energy, count_eff)
 plt.xlabel("Energy (keV)",fontsize=12)
 plt.ylabel("Rate (counts/s)",fontsize=12)
 plt.xticks(fontsize=12)
