@@ -10,10 +10,15 @@ from matplotlib import rc
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 rc('text', usetex=True)
 
+bkg_data_dic = read_cnf_file('./bkg_Gary.CNF')
+bkg_channel = np.array(bkg_data_dic['Channels']).astype(float)
+bkg_counts = np.array(bkg_data_dic['Channels data']).astype(float)
+bkg_counts /= (86400 / 3600 / 24)
 
-data_dic = read_cnf_file('./bkg_Gary.CNF')
-channel = data_dic['Channels']
-counts = data_dic['Channels data']
+PTFE_data_dic = read_cnf_file('./PTFE_Gary.CNF')
+PTFE_channel = np.array(PTFE_data_dic['Channels']).astype(float)
+PTFE_counts = np.array(PTFE_data_dic['Channels data']).astype(float)
+PTFE_counts /= (341914.16 / 3600 / 24)
 
 def calibration_curve(channels):
     return 0.3865 * channels + 0.5
@@ -80,15 +85,17 @@ def intergrate_gaussian(lower_limit, upper_limit, mean, std, amplitude):
 def compute_rate(event, efficiency, time):
     print("Event Rate: {}Bq".format(event / (efficiency * time))) 
 
-energy = calibration_curve(channel)
+PTFE_energy = calibration_curve(PTFE_channel)
+bkg_energy = calibration_curve(bkg_channel)
 
-count_eff = detector_efficiency(energy, counts)
-count_eff /= 86400
+PTFE_count_eff = detector_efficiency(PTFE_energy, PTFE_counts)
+bkg_count_eff = detector_efficiency(bkg_energy, bkg_counts)
 
-plt.scatter(energy, count_eff)
+plt.plot(bkg_energy, bkg_counts)
+plt.plot(PTFE_energy, PTFE_counts)
 plt.xlabel("Energy (keV)",fontsize=12)
-plt.ylabel("Rate (counts/s)",fontsize=12)
+plt.ylabel("Rate (counts/day)",fontsize=12)
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
-#plt.yscale("log")
+plt.yscale("log")
 plt.show()
